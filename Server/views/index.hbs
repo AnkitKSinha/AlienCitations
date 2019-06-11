@@ -1,0 +1,181 @@
+<div class="row text-center">
+  <div class="col-sm-12">
+    <h1 class="title-text">Alien Citations</h1>
+  </div>
+  <div class="col-sm-8 col-sm-offset-2">
+    <p class="abstract">To find out the names of those people who have cited a paper and are unknown to the author, using the citation graph.
+A citation is a reference to a published or unpublished source which was consulted when a paper was written. A citation network or a citation graph is a representation of the nested levels of citations, where the nodes represent the papers and an edge between 2 nodes depicts the citation link. A citation network is often used to extract important information about the papers and authors in the network, such as the most influential paper. With a small modification, a citation network can be used to find out the Alien Citations. A network for such a problem would contain authors as nodes and an edge between them depicting the citation link. To extract the alien network from the complete citation network, nodes containing the names of known author have to be deleted. These known authors can be which can be a colleague, guide or a student to the author. Alien Citations is a new method for evaluation of an authors productivity by considering his citation impact, and the measure of it contributes to the overall h-index of the author. One of the uses of this method can be seen in the Visa Office. The Visa office now requires recommendations from people we dont know. Using Alien Citations we can extract the list of such people and a third party can contact them and ask if they are willing to write the recommendation. Another use can be in a social networking domain. Alien Citations can contribute in finding the genuinity of a trending tweet, or a viral post on Facebook.</p>
+    <h3 class="text-center" style="margin-top:20px;">Test it out !</h3>
+  </div>
+</div>
+
+<div class="container">
+  <form name="data-form" enctype="multipart/form-data" action="/" method="POST">
+    <div class="row">
+      <div class="col-sm-4 col-sm-offset-2 upload-container">
+        <div class="col-sm-4 col-sm-offset-4 text-center">
+          <div class="col-sm-12">
+            <button type="button" id="dataset-button" class="uk-button uk-button-primary uk-button-large">
+              <i class="fas fa-upload"></i>
+            </button>
+            <input id="dataset-upload" type="file" name="dataset" style="display : none;">
+          </div>
+        </div>
+        <div class="col-sm-12 text-center">
+          <p class="upload-text">Upload Dataset</p>
+          <p class="file-selected-text"></p>
+        </div>
+      </div>
+
+      <div class="col-sm-4 upload-container">
+        <div class="col-sm-4 col-sm-offset-4 text-center">
+          <div class="col-sm-12">
+            <button type="button" id="list-button" class="uk-button uk-button-primary uk-button-large">
+              <i class="fas fa-upload"></i>
+            </button>
+            <input id="list-upload" type="file" name="list" style="display : none;">
+          </div>
+        </div>
+        <div class="col-sm-12 text-center">
+          <p class="upload-text">Acquaintance List</p>
+          <p class="list-selected-text"></p>
+        </div>
+        
+      </div>
+      
+      <div class="col-sm-12 text-center">
+        <button type="submit" id="start-button" class="uk-button uk-button-primary uk-button-large">Start</button>
+      </div>
+    </form>
+  </div>
+</div>
+<hr>
+<div class="row results-container">
+  <div class="container">
+    <div class="col-sm-12 text-center">
+      <h2 class="title-text">Network</h2>
+    </div>
+    <div class="col-sm-8 col-sm-offset-2">
+      <p class="abstract">The root node of this network represents our main author, A, and the first level nodes represent all the publications of A. On the second level, we have nodes representing citing publications, connected to our second level publication nodes. The edges between a citing publication node, C, and a publication node, P, represents that C has cited P. Each node in this network, except the root node, has a list of authors associated with it. Thus, every such node, is represented by the title of the publication and a list of authors.</p>
+      
+    </div>
+    <div class="col-sm-12 graph-container" id="mynetwork">
+
+    </div>
+  </div>
+
+
+  <hr>
+  <div class="container" style="margin-top : 100px;">
+    <div class="col-sm-12 text-center">
+      <h2 class="title-text">Results</h2>
+    </div>
+    <div class="col-sm-8 col-sm-offset-2">
+      <p class="abstract">We removed the citations received by acquiantances (colleagues, guide, students) and sort theremaining citations by other scholars’ names.  Next, we plot a histogram and sort citations by other scholars byfrequency,  populate a list.   This list of citations is called alien citations! We also present 2 methods of independently ranking the author's lineage. We used our own algorithm to reduce the complexity of the problem!</p>
+      
+    </div>
+
+    <div class="col-sm-12 hist-container" id="hist">
+      
+    </div>
+
+    <div class="col-sm-12" style="margin-top : 100px;">
+      <div class="col-sm-4 col-sm-offset-2 aci-container text-center">
+        <h2 class="aci-text">{{aci}}</h2>
+        <h3>ACI</h3>
+        <p class="small-abstract">Alien Citation Index is a measure of the Authors lineage and is defined as the ratio of citations recieved by authors outside the geneology of the author, to the total number of citations recieved.</p>
+      </div>
+      <div class="col-sm-4 score-container text-center">
+        <h2 class="score-text">{{score}}</h2>
+        <h3>SVD Score</h3>
+        <p class="small-abstract">Another independant metric to rank the author's lineage is calculated using Singular Value Decomposition of the adjacency matrix created from the network. Higher the score, more is the number of citations recieved from people outside the geneology.</p>
+      </div>
+    </div>
+  </div>
+
+
+
+</div>
+
+
+<script>
+	var nodes = new vis.DataSet();
+
+  let graphInitNodes = undefined;
+  let histogramData = undefined;
+  try {
+    graphInitNodes = {{{parseJson graph}}};
+    histogramData = {{{parseJson histogram}}};
+  } catch(e) {
+    if(e) {
+      console.log(e);
+    }
+  }
+  if(graphInitNodes) {
+    nodes.add(graphInitNodes.nodes);
+    var edges = graphInitNodes.edges;
+    var container = document.getElementById('mynetwork');
+    var data = {
+      nodes: nodes,
+      edges: edges
+    };
+    var options = {
+      nodes:{
+        shape : "circle",
+        borderWidth: 1,
+        borderWidthSelected: 2,
+        brokenImage:undefined,
+        chosen: true,
+        font: {
+          color: '#000',
+        }
+      }
+    };
+    var network = new vis.Network(container, data, options);
+  }
+
+  if(histogramData) {
+    let x = [];
+    let y = [];
+    for(let author of Object.keys(histogramData)) {
+      x.push(author);
+      y.push(histogramData[author]);
+    }
+
+    for(let i=0; i<y.length; i++) {
+      for(let j=i+1; j<y.length; j++) {
+        if(y[i] < y[j]) {
+          let temp = y[i];
+          y[i] = y[j];
+          y[j] = temp;
+
+          temp = x[i];
+          x[i] = x[j];
+          x[j] = temp;
+        }
+      }
+    }
+    x = x.slice(0, 20);
+    y = y.slice(0, 20);
+    console.log("X : " + x);
+    console.log("Y : " + y);
+
+    let trace = {
+      x : x,
+      y : y,
+      type : 'bar'
+    };
+    let data = [trace];
+    Plotly.newPlot("hist", data);
+
+  }
+  
+</script>
+
+
+
+
+
+
+
+
